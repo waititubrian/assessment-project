@@ -10,7 +10,6 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "JSONPlaceholder App",
   description: "A simple web application with JSONPlaceholder API integration",
-  generator: "v0.dev",
 }
 
 export default function RootLayout({
