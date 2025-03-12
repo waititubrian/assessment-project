@@ -1,96 +1,110 @@
 "use client"
 
-import type React from "react"
-import { createContext, useContext, useState, useEffect } from "react"
-import { useRouter, usePathname } from "next/navigation"
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 
-type User = {
-  id: number
+// Define the User type
+export interface User {
+  id: string
   name: string
-  username: string
   email: string
+  username: string
 }
 
-type AuthContextType = {
+// Define the login result type
+export interface LoginResult {
+  success: boolean
+  error?: string
+}
+
+// Define the AuthContext type
+interface AuthContextType {
   user: User | null
   isLoading: boolean
-  login: (email: string, password: string) => Promise<boolean>
+  login: (email: string, password: string) => Promise<LoginResult>
   logout: () => void
 }
 
+// Create the AuthContext
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+// Create a provider component
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const router = useRouter()
-  const pathname = usePathname()
 
+  // Check for existing session on mount
   useEffect(() => {
-    // Check for existing session
     if (typeof window !== "undefined") {
-      const storedUser = localStorage.getItem("user")
+      // Check if we're in a browser environment
+      const storedUser = localStorage.getItem("auth-user")
       if (storedUser) {
-        setUser(JSON.parse(storedUser))
+        try {
+          setUser(JSON.parse(storedUser))
+        } catch (error) {
+          console.error("Failed to parse stored user:", error)
+          localStorage.removeItem("auth-user")
+        }
       }
       setIsLoading(false)
     }
   }, [])
 
-  useEffect(() => {
-    // Redirect logic based on authentication status
-    if (!isLoading) {
-      const isAuthRoute = ["/dashboard", "/users", "/albums", "/photos"].some((route) => pathname?.startsWith(route))
-
-      const isLoginPage = pathname === "/login"
-
-      if (isAuthRoute && !user) {
-        router.push("/login")
-      } else if (isLoginPage && user) {
-        router.push("/dashboard")
-      }
-    }
-  }, [user, isLoading, pathname, router])
-
-  const login = async (email: string, password: string): Promise<boolean> => {
+  // Login function
+  const login = async (email: string, password: string): Promise<LoginResult> => {
     try {
-      // Fetch all users from JSONPlaceholder
+      // Fetch users from JSONPlaceholder API
       const response = await fetch("https://jsonplaceholder.typicode.com/users")
-      if (!response.ok) throw new Error("Failed to fetch users")
+      if (!response.ok) {
+        throw new Error("Failed to fetch users")
+      }
 
       const users = await response.json()
 
-      // Find the user with the matching email
-      const matchedUser = users.find((user: User) => user.email.toLowerCase() === email.toLowerCase())
+      // Find user with matching email
+      const user = users.find((user: any) => user.email.toLowerCase() === email.toLowerCase())
 
-      if (!matchedUser) {
-        return false // User not found
+      if (!user) {
+        return { success: false, error: "User not found" }
       }
 
       // For demo purposes, we'll consider the password valid if it matches the username
-      // In a real app, you would hash passwords and compare them properly
-      if (password !== matchedUser.username) {
-        return false // Password doesn't match
+      if (password !== user.username) {
+        return { success: false, error: "Invalid password" }
       }
 
-      setUser(matchedUser)
-      localStorage.setItem("user", JSON.stringify(matchedUser))
-      return true
+      // Create user object
+      const authUser: User = {
+        id: user.id.toString(),
+        name: user.name,
+        email: user.email,
+        username: user.username,
+      }
+
+      // Store user in state and localStorage (with check for browser environment)
+      setUser(authUser)
+      if (typeof window !== "undefined") {
+        localStorage.setItem("auth-user", JSON.stringify(authUser))
+      }
+
+      return { success: true }
     } catch (error) {
       console.error("Login error:", error)
-      return false
+      return { success: false, error: "An error occurred during login" }
     }
   }
 
+  // Logout function
   const logout = () => {
     setUser(null)
-    localStorage.removeItem("user")
-    router.push("/")
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("auth-user")
+    }
   }
 
   return <AuthContext.Provider value={{ user, isLoading, login, logout }}>{children}</AuthContext.Provider>
 }
 
+// Custom hook to use the auth context
 export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {
@@ -98,4 +112,3 @@ export function useAuth() {
   }
   return context
 }
-
