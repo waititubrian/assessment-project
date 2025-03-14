@@ -1,3 +1,4 @@
+import time
 from telnetlib import EC
 
 from selenium import webdriver
@@ -86,6 +87,7 @@ class SearchFunctionality:
         WebDriverWait(self.driver, 10).until(
             EC.presence_of_element_located((By.XPATH, "//h1[contains(text(), 'Photos')]"))
         )
+        time.sleep(5)
 
     def photo_search(self):
         # Define a search term that appears in some JSONPlaceholder photo titles
@@ -103,6 +105,8 @@ class SearchFunctionality:
         photo_cards = self.driver.find_elements(By.XPATH, "//div[contains(@class, 'card')]")
         assert len(photo_cards) > 0, f"No search results found for term '{search_term}'"
         print(f"Found {len(photo_cards)} results for search term '{search_term}'")
+        time.sleep(5)
+
 
 if __name__ == "__main__":
     automation = SearchFunctionality()
