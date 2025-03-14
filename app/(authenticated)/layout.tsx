@@ -1,29 +1,33 @@
 "use client"
 
 import type React from "react"
-import { useEffect } from "react"
+
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { useAuth } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
 import { Home, Users, BookImage, ImageIcon, LogOut, Menu, X } from "lucide-react"
-import { useState } from "react"
+import { useAuth } from "@/lib/auth"
 
 export default function AuthenticatedLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const { user, logout, isLoading } = useAuth()
+  const { user, isLoading, logout } = useAuth()
   const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   useEffect(() => {
+    // Redirect to login if not authenticated and not loading
     if (!isLoading && !user) {
-      router.push("/login")
+      // Encode the current path as a callbackUrl parameter
+      const currentPath = window.location.pathname
+      router.push(`/login?callbackUrl=${encodeURIComponent(currentPath)}`)
     }
   }, [user, isLoading, router])
 
+  // Show loading state while checking authentication
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -32,22 +36,28 @@ export default function AuthenticatedLayout({
     )
   }
 
+  // Don't render anything if not authenticated
   if (!user) {
     return null
   }
 
   const navItems = [
-    { href: "/dashboard", icon: <Home className="h-5 w-5" />, label: "Home" },
-    { href: "/users", icon: <Users className="h-5 w-5" />, label: "Users" },
-    { href: "/albums", icon: <BookImage className="h-5 w-5" />, label: "Albums" },
-    { href: "/photos", icon: <ImageIcon className="h-5 w-5" />, label: "Photos" },
+    { href: "/dashboard", icon: <Home className="h-5 w-5" />, label: "Home", id: "nav-home" },
+    { href: "/users", icon: <Users className="h-5 w-5" />, label: "Users", id: "nav-users" },
+    { href: "/albums", icon: <BookImage className="h-5 w-5" />, label: "Albums", id: "nav-albums" },
+    { href: "/photos", icon: <ImageIcon className="h-5 w-5" />, label: "Photos", id: "nav-photos" },
   ]
+
+  const handleLogout = () => {
+    logout()
+    router.push("/")
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b bg-background px-4 lg:px-6">
         <Link href="/dashboard" className="flex items-center">
-          <span className="text-xl font-bold">JSONPlaceholder App</span>
+          <span className="text-xl font-bold">Assessment Project</span>
         </Link>
 
         {/* Desktop menu */}
@@ -56,6 +66,8 @@ export default function AuthenticatedLayout({
             <Link
               key={item.href}
               href={item.href}
+              id={item.id}
+              data-testid={item.id}
               className="flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary"
             >
               {item.icon}
@@ -68,7 +80,14 @@ export default function AuthenticatedLayout({
           <div className="hidden md:block text-sm">
             Welcome, {user.name} <span className="text-muted-foreground">(@{user.username})</span>
           </div>
-          <Button variant="ghost" size="icon" onClick={logout} className="hidden md:flex" aria-label="Logout">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleLogout}
+            className="hidden md:flex"
+            aria-label="Logout"
+            id="logout-button"
+          >
             <LogOut className="h-5 w-5" />
           </Button>
 
@@ -79,6 +98,7 @@ export default function AuthenticatedLayout({
             className="md:hidden"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+            id="mobile-menu-button"
           >
             {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
@@ -99,6 +119,8 @@ export default function AuthenticatedLayout({
               <Link
                 key={item.href}
                 href={item.href}
+                id={`mobile-${item.id}`}
+                data-testid={`mobile-${item.id}`}
                 className="flex items-center gap-2 p-3 text-sm font-medium hover:bg-accent rounded-md"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
@@ -110,8 +132,9 @@ export default function AuthenticatedLayout({
               className="flex items-center gap-2 p-3 text-sm font-medium hover:bg-accent rounded-md text-left"
               onClick={() => {
                 setIsMobileMenuOpen(false)
-                logout()
+                handleLogout()
               }}
+              id="mobile-logout-button"
             >
               <LogOut className="h-5 w-5" />
               Logout
@@ -124,4 +147,3 @@ export default function AuthenticatedLayout({
     </div>
   )
 }
-
