@@ -1,9 +1,23 @@
-This Next.js 14 web application integrates with the JSONPlaceholder API to display users, albums, and photos with a secure authentication system. It features responsive design, dark mode support, and comprehensive testing, including test automation, API testing, and performance testing to ensure reliability and scalability.
+# Assessment Project - Photo Album Application
 
-Key Aspects:
-Authentication: Secure email/password login
-User & Album Management: Browse user profiles and albums
-Photo Browser: Search and paginate photos
-Testing: Automated UI tests, API validation, and performance assessment
-Technologies: Next.js 14, React, TypeScript, Tailwind CSS, Shadcn/UI
-This project ensures a modern, efficient, and well-tested web application.
+## Overview
+
+This is a web application that allows users to browse photo albums using data from the JSONPlaceholder API. The application features user authentication, album browsing, photo viewing, and search functionality.
+
+## Features
+
+- **User Authentication**: Secure login system with form validation
+- **Dashboard**: View all albums and photos after authentication
+- **Album Browsing**: Browse through albums with pagination
+- **Photo Viewing**: View photos within albums with details
+- **Search Functionality**: Search for albums and photos by title
+- **Responsive Design**: Works on desktop and mobile devices
+- **Protected Routes**: Authenticated access to content
+
+## Technologies Used
+
+- **Frontend**: React.js with Next.js App Router
+- **Styling**: Tailwind CSS
+- **Authentication**: Custom authentication system
+- **Data Source**: JSONPlaceholder API
+- **Testing**: Jest, React Testing Library, Selenium
