@@ -20,4 +20,4 @@ This is a web application that allows users to browse photo albums using data fr
 - **Styling**: Tailwind CSS
 - **Authentication**: Custom authentication system
 - **Data Source**: JSONPlaceholder API
-- # Assessment Project - Photo Album Application
+- **Testing**: Python with Selenium WebDriver
